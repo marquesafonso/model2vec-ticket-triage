@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 class BaseModel:
     def __init__(
         self,
-        model_name :str = "minishlab/potion-base-32m"
+        model_name: str = "minishlab/potion-base-32m",
+        device: str = "xpu"
     ):
         logging.basicConfig(
             level=logging.INFO, 
@@ -15,6 +16,7 @@ class BaseModel:
             datefmt='%H:%M:%S'
         )
         self.model_name = model_name
+        self.device = device
         self.classifier = StaticModelForClassification.from_pretrained(model_name=self.model_name)
     
     def fit_model(
@@ -36,7 +38,7 @@ class BaseModel:
             batch_size=32,
             max_epochs=15,
             early_stopping_patience=3,
-            device="xpu",
+            device=self.device,
             class_weight=list(class_weight_dict.values()))
 
         # Evaluate the classifier
@@ -44,7 +46,7 @@ class BaseModel:
         logging.info(results)
     
     def save_model(
-        self,
+        self
     ):
         load_dotenv()
         HF_USER = os.getenv("HF_USER")

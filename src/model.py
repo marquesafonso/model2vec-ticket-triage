@@ -43,11 +43,17 @@ class BaseModel:
                 boost_factor=3,
                 seed=10
             )
+            labels = sorted(train_dataset.to_pandas()["labels"].unique())
+            class_weight_dict = {}
+            for l in labels:
+                class_weight_dict.update({l: train_dataset.to_pandas()["labels"].apply(lambda x: x == l).sum() / train_dataset.to_pandas()["labels"].count()})
+                logging.info(f"[Train] Label {l}: {train_dataset.to_pandas()["labels"].apply(lambda x: x == l).sum()} occurrences")
+        
         # Create X and y
         X_train, y_train = train_dataset["text"], train_dataset["labels"]
         X_val, y_val = validation_dataset["text"], validation_dataset["labels"]
         X_test, y_test  = test_dataset["text"], test_dataset["labels"]
-        
+    
         # Train the classifier
         self.trained_classifier: StaticModelForClassification = self.classifier.fit(
             X=X_train, 

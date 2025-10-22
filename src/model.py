@@ -1,5 +1,6 @@
 import os, logging
 import datasets as ds
+import torch
 from model2vec.train import StaticModelForClassification
 from model2vec.inference import StaticModelPipeline
 from dotenv import load_dotenv
@@ -8,7 +9,7 @@ class BaseModel:
     def __init__(
         self,
         model_name: str = "minishlab/potion-base-32m",
-        device: str = "xpu"
+        device: str = "auto"
     ):
         logging.basicConfig(
             level=logging.INFO, 
@@ -22,37 +23,45 @@ class BaseModel:
     def fit_model(
         self,
         train_dataset : ds.Dataset,
+        validation_dataset: ds.Dataset,
         test_dataset: ds.Dataset,
+        learning_rate: float,
+        max_epochs: int,
+        batch_size: int,
         class_weight_dict: dict
     ):
         # Create X and y
         X_train, y_train = train_dataset["text"], train_dataset["labels"]
+        X_val, y_val = validation_dataset["text"], validation_dataset["labels"]
         X_test, y_test  = test_dataset["text"], test_dataset["labels"]
-
-
+        
         # Train the classifier
         self.trained_classifier: StaticModelForClassification = self.classifier.fit(
             X=X_train, 
-            Y=y_train,
-            learning_rate=1e-4,
-            batch_size=32,
-            max_epochs=15,
-            early_stopping_patience=3,
+            y=y_train,
+            learning_rate=learning_rate,
+            batch_size=batch_size,
+            max_epochs=max_epochs,
+            early_stopping_patience=5,
             device=self.device,
-            class_weight=list(class_weight_dict.values()))
+            class_weight=torch.Tensor(list(class_weight_dict.values())),
+            X_val=X_val,
+            y_val=y_val
+        )
 
         # Evaluate the classifier
         results = self.trained_classifier.evaluate(X_test, y_test)
-        logging.info(results)
+        logging.info(f"\n{results}")
     
     def save_model(
-        self
+        self,
+        model_name
     ):
         load_dotenv()
         HF_USER = os.getenv("HF_USER")
         HF_TOKEN = os.getenv("HF_TOKEN")
         pipeline = self.trained_classifier.to_pipeline()
-        pipeline.push_to_hub(f"{HF_USER}/model2vec-ticket-triage", token=HF_TOKEN)
+        pipeline.push_to_hub(f"{HF_USER}/{model_name}", token=HF_TOKEN)
     
 class TicketTriageModel:
     def __init__(

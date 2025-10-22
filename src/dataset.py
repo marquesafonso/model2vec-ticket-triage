@@ -42,7 +42,9 @@ def load_dataset():
     queue_labels = list(label2id.keys())
 
     ## Splitting dataset into train, validation and test sets
-    train, test = df_en.train_test_split(test_size=0.1, stratify_by_column="labels", seed=seed).values()
+    train_valid, test = df_en.train_test_split(test_size=0.1, stratify_by_column="labels", seed=seed).values()
+    train_valid: ds.Dataset = train_valid.shuffle(seed=seed)
+    train, valid = train_valid.train_test_split(test_size=0.05, stratify_by_column="labels", seed=seed).values()
 
     ## Verifying distribution of class labels in train and validation datasets
     labels = sorted(train.to_pandas()["labels"].unique())
@@ -51,8 +53,14 @@ def load_dataset():
         class_weight_dict.update({l: train.to_pandas()["labels"].apply(lambda x: x == l).sum() / train.to_pandas()["labels"].count()})
         logging.info(f"[Train] Label {l}: {train.to_pandas()["labels"].apply(lambda x: x == l).sum()} occurrences")
 
+    labels = sorted(valid.to_pandas()["labels"].unique())
+    for l in labels:
+        logging.info(f"[Validation] Label {l}: {valid.to_pandas()["labels"].apply(lambda x: x == l).sum()} occurrences")
+
+    
     dataset_dict = ds.DatasetDict({
         "train": train,
+        "validation": valid,
         "test": test
     })
 

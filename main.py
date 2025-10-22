@@ -37,7 +37,7 @@ def main():
         num_labels=len(queue_labels)
     )
     # Export to HF Hub
-    model.save_model(model_name="ticket_triage_potion-base-32M_5e-3-oversample-boosting-4")
+    model.save_model(model_name="ticket_triage_potion-base-32M_5e-3-oversample-boosting-3.5")
 
 
 

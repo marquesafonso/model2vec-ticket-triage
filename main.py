@@ -11,7 +11,7 @@ def main():
     )
     ## Prepare datasets
     logging.info("Prepare datasets...")
-    dataset, _, _, _, class_weight_dict = load_dataset()
+    dataset, queue_labels, _, _, class_weight_dict = load_dataset()
     train_dataset, validation_dataset, test_dataset = dataset["train"], dataset["validation"], dataset["test"]
 
     ## Set up device
@@ -32,10 +32,12 @@ def main():
         learning_rate=1e-3,
         batch_size=32,
         max_epochs=15,
-        class_weight_dict=class_weight_dict
+        class_weight_dict=class_weight_dict,
+        oversample=True,
+        num_labels=len(queue_labels)
     )
     # Export to HF Hub
-    model.save_model(model_name="ticket_triage_potion-base-32M_1e-3")
+    model.save_model(model_name="ticket_triage_potion-base-32M_1e-3-oversample")
 
 
 

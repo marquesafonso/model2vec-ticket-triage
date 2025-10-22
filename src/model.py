@@ -4,6 +4,7 @@ import torch
 from model2vec.train import StaticModelForClassification
 from model2vec.inference import StaticModelPipeline
 from dotenv import load_dotenv
+from src.dataset import oversample_with_interleave
 
 class BaseModel:
     def __init__(
@@ -28,8 +29,20 @@ class BaseModel:
         learning_rate: float,
         max_epochs: int,
         batch_size: int,
-        class_weight_dict: dict
+        class_weight_dict: dict,
+        oversample: bool,
+        num_labels: int
     ):
+        if oversample:
+            ## Oversampling (underrepresented) classes
+            logging.info("Oversampling (underrepresented) classes...")
+            train_dataset = oversample_with_interleave(
+                train_dataset,
+                num_labels=num_labels,
+                boost_classes=[2,3,7],
+                boost_factor=3,
+                seed=10
+            )
         # Create X and y
         X_train, y_train = train_dataset["text"], train_dataset["labels"]
         X_val, y_val = validation_dataset["text"], validation_dataset["labels"]
@@ -61,7 +74,7 @@ class BaseModel:
         HF_USER = os.getenv("HF_USER")
         HF_TOKEN = os.getenv("HF_TOKEN")
         pipeline = self.trained_classifier.to_pipeline()
-        pipeline.push_to_hub(f"{HF_USER}/{model_name}", token=HF_TOKEN)
+        pipeline.push_to_hub(f"{HF_USER}/{model_name}", token=HF_TOKEN, private=True)
     
 class TicketTriageModel:
     def __init__(

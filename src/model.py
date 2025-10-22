@@ -40,7 +40,7 @@ class BaseModel:
                 train_dataset,
                 num_labels=num_labels,
                 boost_classes=[2,3,7],
-                boost_factor=3,
+                boost_factor=4,
                 seed=10
             )
             labels = sorted(train_dataset.to_pandas()["labels"].unique())

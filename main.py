@@ -29,7 +29,7 @@ def main():
         train_dataset=train_dataset,
         validation_dataset=validation_dataset,
         test_dataset=test_dataset,
-        learning_rate=8e-3,
+        learning_rate=5e-3,
         batch_size=32,
         max_epochs=15,
         class_weight_dict=class_weight_dict,
@@ -37,7 +37,7 @@ def main():
         num_labels=len(queue_labels)
     )
     # Export to HF Hub
-    model.save_model(model_name="ticket_triage_potion-base-32M_8e-3-oversample-boosting")
+    model.save_model(model_name="ticket_triage_potion-base-32M_5e-3-oversample-boosting-4")
 
 
 
